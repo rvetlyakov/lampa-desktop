@@ -20,7 +20,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: corepack enable
+      - run: |
+          corepack enable
+          corepack prepare yarn@4 --activate
       - run: yarn install --immutable
       - run: yarn test
       - run: yarn lint
@@ -32,7 +34,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: corepack enable
+      - run: |
+          corepack enable
+          corepack prepare yarn@4 --activate
       - run: yarn install --immutable
       - run: yarn test
       - run: yarn build-mac
