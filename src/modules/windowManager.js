@@ -1,7 +1,8 @@
-const { BrowserWindow, screen } = require("electron");
+const { BrowserWindow, screen, shell } = require("electron");
 const path = require("node:path");
 const store = require("./storeManager");
 const { setupPluginHandler } = require("./pluginHandler");
+const { buildIinaAutoplayUrl } = require("./iinaAutoplay");
 
 let mainWindow = null;
 
@@ -203,6 +204,13 @@ function createWindow() {
   return mainWindow;
 }
 
+function getIinaAutoplayUrl(externalUrl) {
+  if (process.platform !== "darwin" || !store.get("iinaAutoNextEpisodes", false)) {
+    return null;
+  }
+  return buildIinaAutoplayUrl(externalUrl);
+}
+
 function setupNavigationHandlers(mainWindow) {
   let isReloadingFromHandler = false;
 
@@ -232,6 +240,18 @@ function setupNavigationHandlers(mainWindow) {
 
   mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
+
+    // The original URL opens a single torrent file. Replace it with a TorrServer
+    // M3U playlist only when IINA autoplay is enabled and the URL is supported.
+    const autoplayUrl = getIinaAutoplayUrl(navigationUrl);
+    if (autoplayUrl) {
+      event.preventDefault();
+      shell.openExternal(autoplayUrl).catch((error) => {
+        console.error("IINA autoplay launch failed, restoring single episode:", error);
+        return shell.openExternal(navigationUrl).catch(console.error);
+      });
+      return;
+    }
 
     // исправление запуска плееров на MacOS
     const allowedProtocols = ["mpv:", "iina:", "infuse:", "senplayer:"];
@@ -351,10 +371,12 @@ function setupErrorHandler(mainWindow) {
 }
 
 function setupWindowOpenHandler(mainWindow) {
-  const { shell } = require("electron");
-
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    const autoplayUrl = getIinaAutoplayUrl(url);
+    shell.openExternal(autoplayUrl || url).catch((error) => {
+      console.error("Failed to open external URL:", error);
+      if (autoplayUrl) shell.openExternal(url).catch(console.error);
+    });
     return { action: "deny" };
   });
 }
