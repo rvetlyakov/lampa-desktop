@@ -205,7 +205,10 @@ function createWindow() {
 }
 
 function getIinaAutoplayUrl(externalUrl) {
-  if (process.platform !== "darwin" || !store.get("iinaAutoNextEpisodes", false)) {
+  if (
+    process.platform !== "darwin" ||
+    !store.get("iinaAutoNextEpisodes", false)
+  ) {
     return null;
   }
   return buildIinaAutoplayUrl(externalUrl);
