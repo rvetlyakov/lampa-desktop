@@ -15,6 +15,17 @@ test("rewrites a selected episode into a playlist from its index", () => {
   );
 });
 
+test("supports zero-based file indices for the first episode", () => {
+  const first = stream.replace("&index=3", "&index=0");
+  const result = buildIinaAutoplayUrl(
+    `iina://weblink?url=${encodeURIComponent(first)}`,
+  );
+  assert.equal(
+    new URL(new URL(result).searchParams.get("url")).searchParams.get("index"),
+    "0",
+  );
+});
+
 test("preserves server port and IINA-specific query parameters", () => {
   const source = `iina://weblink?url=${encodeURIComponent(stream.replace(":8090", ":9000"))}&new_window=1`;
   const result = new URL(buildIinaAutoplayUrl(source));
