@@ -20,27 +20,49 @@ test("preserves server port and IINA-specific query parameters", () => {
   const result = new URL(buildIinaAutoplayUrl(source));
   assert.equal(result.searchParams.get("new_window"), "1");
   assert.ok(
-    result.searchParams.get("url").startsWith(
-      "http://127.0.0.1:9000/playlist/",
-    ),
+    result.searchParams
+      .get("url")
+      .startsWith("http://127.0.0.1:9000/playlist/"),
   );
 });
 
 test("leaves regular online video alone", () => {
   assert.equal(
-    buildIinaAutoplayUrl("iina://weblink?url=https%3A%2F%2Fexample.com%2Fmovie.mp4"),
+    buildIinaAutoplayUrl(
+      "iina://weblink?url=https%3A%2F%2Fexample.com%2Fmovie.mp4",
+    ),
     null,
   );
 });
 
 test("leaves other players and other IINA actions alone", () => {
-  assert.equal(buildIinaAutoplayUrl(`vlc://weblink?url=${encodeURIComponent(stream)}`), null);
-  assert.equal(buildIinaAutoplayUrl(`iina://open?url=${encodeURIComponent(stream)}`), null);
+  assert.equal(
+    buildIinaAutoplayUrl(
+      `vlc://weblink?url=${encodeURIComponent(stream)}`,
+    ),
+    null,
+  );
+  assert.equal(
+    buildIinaAutoplayUrl(
+      `iina://open?url=${encodeURIComponent(stream)}`,
+    ),
+    null,
+  );
 });
 
 test("requires valid torrent hash and file index", () => {
-  assert.equal(buildIinaAutoplayUrl(`iina://weblink?url=${encodeURIComponent(stream.replace("&index=3", ""))}`), null);
-  assert.equal(buildIinaAutoplayUrl(`iina://weblink?url=${encodeURIComponent(stream.replace(hash, "invalid"))}`), null);
+  assert.equal(
+    buildIinaAutoplayUrl(
+      `iina://weblink?url=${encodeURIComponent(stream.replace("&index=3", ""))}`,
+    ),
+    null,
+  );
+  assert.equal(
+    buildIinaAutoplayUrl(
+      `iina://weblink?url=${encodeURIComponent(stream.replace(hash, "invalid"))}`,
+    ),
+    null,
+  );
 });
 
 test("returns null on malformed input", () => {
