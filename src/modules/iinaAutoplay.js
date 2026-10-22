@@ -24,7 +24,7 @@ function buildIinaAutoplayUrl(externalUrl) {
       !hash ||
       !/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i.test(hash) ||
       !index ||
-      !/^[1-9]\d*$/.test(index)
+      !/^(?:0|[1-9]\d*)$/.test(index)
     ) {
       return null;
     }
