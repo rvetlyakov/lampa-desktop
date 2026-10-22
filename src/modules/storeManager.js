@@ -27,6 +27,7 @@ const store = new Store({
     tsPort: 8090,
     tsUseGst: false,
     defaultPlayer: "vlc",
+    iinaAutoNextEpisodes: false,
   },
 });
 
