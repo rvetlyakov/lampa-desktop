@@ -37,6 +37,17 @@ test("preserves server port and IINA-specific query parameters", () => {
   );
 });
 
+test("preserves TorrServer basic-auth credentials", () => {
+  const secured = stream.replace("http://", "http://user:pass@");
+  const result = buildIinaAutoplayUrl(
+    `iina://weblink?url=${encodeURIComponent(secured)}`,
+  );
+  assert.equal(
+    new URL(result).searchParams.get("url"),
+    `http://user:pass@127.0.0.1:8090/playlist/episodes.m3u?hash=${hash}&index=3`,
+  );
+});
+
 test("leaves regular online video alone", () => {
   assert.equal(
     buildIinaAutoplayUrl(
