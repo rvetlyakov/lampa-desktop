@@ -29,7 +29,7 @@ function buildIinaAutoplayUrl(externalUrl) {
       return null;
     }
 
-    const playlistUrl = new URL("/playlist/episodes.m3u", streamUrl.origin);
+    const playlistUrl = new URL("/playlist/episodes.m3u", streamUrl);
     playlistUrl.searchParams.set("hash", hash);
     playlistUrl.searchParams.set("index", index);
 
