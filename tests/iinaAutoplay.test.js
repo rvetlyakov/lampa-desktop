@@ -48,15 +48,11 @@ test("leaves regular online video alone", () => {
 
 test("leaves other players and other IINA actions alone", () => {
   assert.equal(
-    buildIinaAutoplayUrl(
-      `vlc://weblink?url=${encodeURIComponent(stream)}`,
-    ),
+    buildIinaAutoplayUrl(`vlc://weblink?url=${encodeURIComponent(stream)}`),
     null,
   );
   assert.equal(
-    buildIinaAutoplayUrl(
-      `iina://open?url=${encodeURIComponent(stream)}`,
-    ),
+    buildIinaAutoplayUrl(`iina://open?url=${encodeURIComponent(stream)}`),
     null,
   );
 });

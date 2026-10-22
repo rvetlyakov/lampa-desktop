@@ -250,7 +250,10 @@ function setupNavigationHandlers(mainWindow) {
     if (autoplayUrl) {
       event.preventDefault();
       shell.openExternal(autoplayUrl).catch((error) => {
-        console.error("IINA autoplay launch failed, restoring single episode:", error);
+        console.error(
+          "IINA autoplay launch failed, restoring single episode:",
+          error,
+        );
         return shell.openExternal(navigationUrl).catch(console.error);
       });
       return;

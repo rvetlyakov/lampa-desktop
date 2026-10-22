@@ -865,7 +865,9 @@
             },
           });
         })
-        .catch((error) => console.error("APP Failed to load IINA autoplay:", error));
+        .catch((error) =>
+          console.error("APP Failed to load IINA autoplay:", error),
+        );
     }
 
     Promise.all([
