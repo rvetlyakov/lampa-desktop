@@ -1,6 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildIinaAutoplayUrl } = require("../src/modules/iinaAutoplay");
+const {
+  buildIinaAutoplayUrl,
+  resolveIinaAutoplayUrl,
+} = require("../src/modules/iinaAutoplay");
 
 const hash = "0123456789abcdef0123456789abcdef01234567";
 const stream = `http://127.0.0.1:8090/stream/S01E03.mkv?link=${hash}&index=3&play`;
@@ -94,5 +97,59 @@ test("does not replace a GStreamer HLS manifest", () => {
       `iina://weblink?url=${encodeURIComponent(`http://localhost:8090/gst/${hash}/master.m3u8?index=3`)}`,
     ),
     null,
+  );
+});
+
+test("follows the built-in Lampa next-episode setting without caching it", async () => {
+  const externalUrl = `iina://weblink?url=${encodeURIComponent(stream)}`;
+  const playlistUrl = buildIinaAutoplayUrl(externalUrl);
+  let nextEpisode = true;
+
+  assert.equal(
+    await resolveIinaAutoplayUrl(externalUrl, async () => nextEpisode),
+    playlistUrl,
+  );
+
+  nextEpisode = false;
+  assert.equal(
+    await resolveIinaAutoplayUrl(externalUrl, async () => nextEpisode),
+    null,
+  );
+
+  nextEpisode = true;
+  assert.equal(
+    await resolveIinaAutoplayUrl(externalUrl, async () => nextEpisode),
+    playlistUrl,
+  );
+});
+
+test("does not inspect episode settings for other players or ordinary videos", async () => {
+  let reads = 0;
+  const readSetting = async () => {
+    reads += 1;
+    return true;
+  };
+
+  assert.equal(
+    await resolveIinaAutoplayUrl("infuse://x-callback-url/play", readSetting),
+    null,
+  );
+  assert.equal(
+    await resolveIinaAutoplayUrl(
+      "iina://weblink?url=https%3A%2F%2Fexample.com%2Fmovie.mp4",
+      readSetting,
+    ),
+    null,
+  );
+  assert.equal(reads, 0);
+});
+
+test("surfaces a failed settings read for fallback to the original URL", async () => {
+  const externalUrl = `iina://weblink?url=${encodeURIComponent(stream)}`;
+  await assert.rejects(
+    resolveIinaAutoplayUrl(externalUrl, async () => {
+      throw new Error("renderer unavailable");
+    }),
+    /renderer unavailable/,
   );
 });
