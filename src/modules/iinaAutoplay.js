@@ -40,4 +40,12 @@ function buildIinaAutoplayUrl(externalUrl) {
   }
 }
 
-module.exports = { buildIinaAutoplayUrl };
+// The built-in Lampa "Next episode" switch is the only source of truth.
+// Read its value when an episode is opened, rather than mirroring a second setting.
+async function resolveIinaAutoplayUrl(externalUrl, isNextEpisodeEnabled) {
+  const playlistUrl = buildIinaAutoplayUrl(externalUrl);
+  if (!playlistUrl) return null;
+  return (await isNextEpisodeEnabled()) ? playlistUrl : null;
+}
+
+module.exports = { buildIinaAutoplayUrl, resolveIinaAutoplayUrl };
