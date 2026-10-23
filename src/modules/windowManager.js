@@ -2,7 +2,10 @@ const { BrowserWindow, screen, shell } = require("electron");
 const path = require("node:path");
 const store = require("./storeManager");
 const { setupPluginHandler } = require("./pluginHandler");
-const { buildIinaAutoplayUrl } = require("./iinaAutoplay");
+const {
+  buildIinaAutoplayUrl,
+  resolveIinaAutoplayUrl,
+} = require("./iinaAutoplay");
 
 let mainWindow = null;
 
@@ -204,14 +207,39 @@ function createWindow() {
   return mainWindow;
 }
 
-function getIinaAutoplayUrl(externalUrl) {
-  if (
-    process.platform !== "darwin" ||
-    !store.get("iinaAutoNextEpisodes", false)
-  ) {
-    return null;
+// Use Lampa's built-in "Next episode" setting (playlist_next). It defaults
+// to true in Lampa; there is no separate IINA-specific preference.
+async function getIinaAutoplayUrl(mainWindow, externalUrl) {
+  if (process.platform !== "darwin") return null;
+
+  return resolveIinaAutoplayUrl(externalUrl, () =>
+    mainWindow.webContents.executeJavaScript(
+      "window.Lampa?.Storage?.field?.('playlist_next') ?? (localStorage.getItem('playlist_next') !== 'false')",
+    ),
+  );
+}
+
+async function openExternalPlayer(mainWindow, externalUrl) {
+  let autoplayUrl = null;
+
+  try {
+    autoplayUrl = await getIinaAutoplayUrl(mainWindow, externalUrl);
+  } catch (error) {
+    console.warn("Could not read Lampa next-episode setting:", error);
   }
-  return buildIinaAutoplayUrl(externalUrl);
+
+  try {
+    await shell.openExternal(autoplayUrl || externalUrl);
+  } catch (error) {
+    console.error("Failed to open external player:", error);
+    if (autoplayUrl) {
+      try {
+        await shell.openExternal(externalUrl);
+      } catch (fallbackError) {
+        console.error("Failed to restore single-episode playback:", fallbackError);
+      }
+    }
+  }
 }
 
 function setupNavigationHandlers(mainWindow) {
@@ -244,18 +272,11 @@ function setupNavigationHandlers(mainWindow) {
   mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
 
-    // The original URL opens a single torrent file. Replace it with a TorrServer
-    // M3U playlist only when IINA autoplay is enabled and the URL is supported.
-    const autoplayUrl = getIinaAutoplayUrl(navigationUrl);
-    if (autoplayUrl) {
+    // Keep single-episode playback unless this is a convertible IINA torrent.
+    // The currently selected Lampa setting is read before opening the player.
+    if (process.platform === "darwin" && buildIinaAutoplayUrl(navigationUrl)) {
       event.preventDefault();
-      shell.openExternal(autoplayUrl).catch((error) => {
-        console.error(
-          "IINA autoplay launch failed, restoring single episode:",
-          error,
-        );
-        return shell.openExternal(navigationUrl).catch(console.error);
-      });
+      void openExternalPlayer(mainWindow, navigationUrl);
       return;
     }
 
@@ -378,11 +399,7 @@ function setupErrorHandler(mainWindow) {
 
 function setupWindowOpenHandler(mainWindow) {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    const autoplayUrl = getIinaAutoplayUrl(url);
-    shell.openExternal(autoplayUrl || url).catch((error) => {
-      console.error("Failed to open external URL:", error);
-      if (autoplayUrl) shell.openExternal(url).catch(console.error);
-    });
+    void openExternalPlayer(mainWindow, url);
     return { action: "deny" };
   });
 }
