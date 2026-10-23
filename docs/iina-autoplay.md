@@ -4,14 +4,17 @@
 
 1. Install [IINA](https://iina.io/).
 2. In Lampa Desktop, select **IINA** under **Settings → Player → Torrent player type**.
-3. Turn on **Settings → Player → Play next episodes in IINA**. This setting is off by default.
+3. Use Lampa's existing **Settings → Player → Next episode** setting (`playlist_next`).
+   It is enabled by default; there is **no separate IINA autoplay switch**.
 4. In IINA, enable **Play next item automatically** in its Playlist settings.
 5. Open an episode from a multi-episode torrent through TorrServer.
 
-Lampa Desktop intercepts the IINA `iina://weblink` launch link and, only when this
-setting is enabled, replaces a supported TorrServer single-file stream URL with
+Lampa Desktop reads Lampa's built-in `playlist_next` setting when opening IINA.
+When enabled, it replaces a supported TorrServer single-file stream URL with
 a `/playlist/episodes.m3u?hash=...&index=...` URL. TorrServer creates the
 playlist beginning at the selected file, and IINA plays it sequentially.
+When disabled, IINA receives the original single-episode URL. Changes to
+the built-in setting take effect on the next episode launch.
 
 ## Limitations
 
