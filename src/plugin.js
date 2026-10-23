@@ -517,16 +517,6 @@
       },
 
       // Плееры
-      app_settings_iina_auto_next_name: {
-        ru: "Следующие серии в IINA",
-        en: "Play next episodes in IINA",
-        uk: "Наступні серії в IINA",
-      },
-      app_settings_iina_auto_next_description: {
-        ru: "Автоматически воспроизводить оставшиеся видео из той же торрент-раздачи в IINA. Не работает с GStreamer (HLS).",
-        en: "Automatically play the remaining videos in the same torrent in IINA. Not supported with GStreamer (HLS).",
-        uk: "Автоматично відтворювати решту відео з того самого торента в IINA. Не працює з GStreamer (HLS).",
-      },
       app_settings_player_find: {
         ru: "Поиск и выбор плеера",
         en: "Player search and selection",
@@ -832,42 +822,6 @@
           }, 0);
         },
       });
-    }
-
-    if (Lampa.Platform.macOS()) {
-      window.electronAPI.store
-        .get("iinaAutoNextEpisodes")
-        .then((enabled) => {
-          Lampa.SettingsApi.addParam({
-            component: "player",
-            param: {
-              name: "desktop_iina_auto_next_episodes",
-              type: "trigger",
-              default: Boolean(enabled),
-            },
-            field: {
-              name: Lampa.Lang.translate("app_settings_iina_auto_next_name"),
-              description: Lampa.Lang.translate(
-                "app_settings_iina_auto_next_description",
-              ),
-            },
-            onChange: async (value) => {
-              await window.electronAPI.store.set(
-                "iinaAutoNextEpisodes",
-                value === "true",
-              );
-            },
-            onRender: (element) => {
-              setTimeout(() => {
-                const anchor = $('div[data-name="player_torrent"]');
-                if (anchor.length) anchor.after(element);
-              }, 0);
-            },
-          });
-        })
-        .catch((error) =>
-          console.error("APP Failed to load IINA autoplay:", error),
-        );
     }
 
     Promise.all([
