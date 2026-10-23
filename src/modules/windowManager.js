@@ -236,7 +236,10 @@ async function openExternalPlayer(mainWindow, externalUrl) {
       try {
         await shell.openExternal(externalUrl);
       } catch (fallbackError) {
-        console.error("Failed to restore single-episode playback:", fallbackError);
+        console.error(
+          "Failed to restore single-episode playback:",
+          fallbackError,
+        );
       }
     }
   }
